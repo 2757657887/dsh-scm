@@ -236,8 +236,8 @@ export async function diff(root: string, file: string | undefined, staged: boole
 }
 
 /** Recent commits, for the panel's history strip. */
-export async function log(root: string, limit: number) {
-  const result = await git(['log', '--all', '--topo-order', `--max-count=${limit}`, '--date=short', '--pretty=format:%H%x00%P%x00%s%x00%an%x00%ad%x00%D'], root)
+export async function log(root: string, limit: number, branch?: string) {
+  const result = await git(['log', '--topo-order', `--max-count=${limit}`, '--date=short', '--pretty=format:%H%x00%P%x00%s%x00%an%x00%ad%x00%D', ...(branch ? [branch,'--'] : ['--all'])], root)
   return result.stdout.split('\n').filter(Boolean).map(line => {
     const [hash='', parents='', subject='', author='', date='', refs=''] = line.split('\0')
     return { hash, parents: parents.split(' ').filter(Boolean), subject, author, date, refs }

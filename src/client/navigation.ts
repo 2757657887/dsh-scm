@@ -9,3 +9,7 @@ export function workspaceFileAddress(repo:string,file:string,sessionId:string):s
 let opener:((address:string)=>void)|undefined
 export function bindFileOpener(fn:(address:string)=>void):()=>void{opener=fn;return()=>{if(opener===fn)opener=undefined}}
 export function openWorkspaceFile(repo:string,file:string,sessionId:string):boolean {if(!opener)return false;opener(workspaceFileAddress(repo,file,sessionId));return true}
+
+let graphOpener:(()=>void)|undefined
+export function bindGraphOpener(fn:()=>void):()=>void{graphOpener=fn;return()=>{if(graphOpener===fn)graphOpener=undefined}}
+export function openGraphTab():boolean{if(!graphOpener)return false;graphOpener();return true}

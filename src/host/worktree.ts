@@ -114,7 +114,7 @@ export async function listWorktrees(root: string): Promise<WorktreeInfo[]> {
       branch: entry.branch,
       head: entry.head,
       main: index === 0,
-      dirty: porcelain.code === 0 && porcelain.stdout.trim() !== '',
+      dirty: porcelain.code !== 0 || porcelain.stdout.trim() !== '',
     })
   }
   return infos

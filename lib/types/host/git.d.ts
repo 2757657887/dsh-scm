@@ -63,7 +63,7 @@ export declare function branches(root: string): Promise<BranchInfo[]>;
 /** Unified diff text for one file (or the whole tree when `file` is omitted). */
 export declare function diff(root: string, file: string | undefined, staged: boolean): Promise<string>;
 /** Recent commits, for the panel's history strip. */
-export declare function log(root: string, limit: number): Promise<{
+export declare function log(root: string, limit: number, branch?: string): Promise<{
     hash: string;
     parents: string[];
     subject: string;

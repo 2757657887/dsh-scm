@@ -1,4 +1,4 @@
-import {bindFileOpener} from './navigation.js'
+import {bindFileOpener,bindGraphOpener} from './navigation.js'
 import {ScmMultiDiffTab,bindGroupDiffOpener} from './multiDiff.js'
 import {ScmDiffTab,bindDiffOpener} from './diffEditor.js'
 /**
@@ -68,6 +68,7 @@ export function apply(ctx: ClientContext): void {
   ctx.inject(['sidebarRightTabs'], injected => {
     const tabs = injected.get('sidebarRightTabs') as TabRegistry | undefined
     if (tabs === undefined) return undefined
+    const stopGraph=tabs.register({id:'dsh-scm:graph',kind:'scm-graph',title:()=> 'Git 图表'})
     const stopMulti=tabs.register({id:'dsh-scm:multi-diff',kind:'scm-multi-diff',title:()=> '所有更改'})
     const stopDiff=tabs.register({id:'dsh-scm:diff',kind:'scm-diff',title:()=> '差异对比'})
     const stopScm=tabs.register({
@@ -83,12 +84,13 @@ export function apply(ctx: ClientContext): void {
         },
       ],
     })
-    return ()=>{stopScm();stopDiff();stopMulti()}
+    return ()=>{stopScm();stopDiff();stopMulti();stopGraph()}
   })
   ctx.inject(['sidebarRight'], injected=>{
     const sidebar=injected.get('sidebarRight') as {openTab(kind:string,options?:{params:unknown}):void;openResource(address:string):void}|undefined
-    if(sidebar){const single=bindDiffOpener(request=>sidebar.openTab('scm-diff',{params:request}));const group=bindGroupDiffOpener(request=>sidebar.openTab('scm-multi-diff',{params:request}));const file=bindFileOpener(address=>sidebar.openResource(address));return()=>{single();group();file()}}
+    if(sidebar){const single=bindDiffOpener(request=>sidebar.openTab('scm-diff',{params:request}));const group=bindGroupDiffOpener(request=>sidebar.openTab('scm-multi-diff',{params:request}));const file=bindFileOpener(address=>sidebar.openResource(address));const graph=bindGraphOpener(()=>sidebar.openTab('scm-graph'));return()=>{single();group();file();graph()}}
   })
+  ctx.effect(()=>ctx.slots.inject('sidebar.right.pane.tab',()=>ctx.slots.register({name:'sidebar.right.pane.tab',key:'dsh-scm:graph',inject:(sessionId:string)=>({sessionId})},(props:{sessionId:string})=>ScmPanel({...props,graphOnly:true}))), 'dsh-scm: graph body')
   ctx.effect(()=>ctx.slots.inject('sidebar.right.pane.tab',()=>ctx.slots.register({name:'sidebar.right.pane.tab',key:'dsh-scm:multi-diff'},ScmMultiDiffTab)), 'dsh-scm: multi diff body')
   ctx.effect(()=>ctx.slots.inject('sidebar.right.pane.tab',()=>ctx.slots.register({name:'sidebar.right.pane.tab',key:'dsh-scm:diff'},ScmDiffTab)), 'dsh-scm: diff body')
 
