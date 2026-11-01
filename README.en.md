@@ -8,19 +8,23 @@ The plugin loads as a DSH client plugin (`web` platform, injected into the right
 
 ## Screenshots
 
-> Rendered from the repository's preview tooling against the **real plugin panel** (`src/client/panel.ts`, `src/client/diffEditor.ts`, with Monaco served from local plugin assets) plus sample repository data. The UI matches 0.3.0.
+<table>
+<tr>
+<td valign="top" width="300">
+<img src="docs/source-control-panel.png" width="300" alt="Source control panel"><br>
+<sub>Source control panel</sub>
+</td>
+<td valign="top">
+<img src="docs/commit-graph.png" width="520" alt="Commit graph"><br>
+<sub>Commit graph</sub>
+<br><br>
+<img src="docs/diff-view.png" width="520" alt="Diff view"><br>
+<sub>Diff view</sub>
+</td>
+</tr>
+</table>
 
-**Source control panel** — repositories and workspaces, Changes / Staged Changes groups, commit box with its dropdown, graph section
-
-![Source control panel](docs/source-control-panel.png)
-
-**Commit graph** — branch and tag decorations, branch filtering, load more
-
-![Commit graph](docs/commit-graph.png)
-
-**Diff view** — Monaco side-by-side diff, word-level highlighting, previous / next change navigation
-
-![Diff view](docs/diff-view.png)
+<sub>Rendered from the repository's preview tooling against the real plugin panel (`src/client/panel.ts`, `src/client/diffEditor.ts`, with Monaco served from local plugin assets) plus sample data. The UI matches 0.3.0.</sub>
 
 ## Features
 

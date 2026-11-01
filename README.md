@@ -8,19 +8,23 @@ VS Code 风格的 **DSH 原生源代码管理插件**：右侧栏 Git 面板、M
 
 ## 效果图
 
-> 截图由仓库内的预览工具渲染**真实插件面板**（`src/client/panel.ts`、`src/client/diffEditor.ts`，Monaco 资源同样是插件本地文件）并注入示例仓库数据得到，与 0.3.0 的界面一致。
+<table>
+<tr>
+<td valign="top" width="300">
+<img src="docs/source-control-panel.png" width="300" alt="源代码管理面板"><br>
+<sub>源代码管理面板</sub>
+</td>
+<td valign="top">
+<img src="docs/commit-graph.png" width="520" alt="提交图表"><br>
+<sub>提交图表</sub>
+<br><br>
+<img src="docs/diff-view.png" width="520" alt="差异视图"><br>
+<sub>差异视图</sub>
+</td>
+</tr>
+</table>
 
-**源代码管理面板** — 仓库与工作区、更改 / 暂存的更改分组、提交框与提交下拉、图表区
-
-![源代码管理面板](docs/source-control-panel.png)
-
-**提交图表** — 分支与标签装饰、按分支过滤、加载更多
-
-![提交图表](docs/commit-graph.png)
-
-**差异视图** — Monaco 左右差异、词级高亮、上一个 / 下一个更改导航
-
-![差异视图](docs/diff-view.png)
+<sub>截图由仓库内的预览工具渲染真实插件面板（`src/client/panel.ts`、`src/client/diffEditor.ts`，Monaco 资源同为插件本地文件）并注入示例数据得到，与 0.3.0 界面一致。</sub>
 
 ## 功能
 
