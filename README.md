@@ -72,3 +72,5 @@ dsh plugin --profile desktop add C:/Projects/dsh-scm --offline
 - 提交下拉菜单支持提交、修改上次提交、提交并推送、提交并同步；同步拉取只允许快进。
 - 增加独立的 DSH Git 图表标签，可按分支查看提交；这是插件内置图表，并非 VS Code 的 Git Graph 扩展。
 - Git 输出仅记录本插件执行的操作；图表最多显示 200 条提交，其他未列出的 VS Code 或第三方扩展命令不在本版本范围内。
+
+验证：34 项测试通过；构建及类型检查通过，客户端包按 9 个模块重新打包。重启 DSH 后确认宿主侧已加载本版本：新增的 `head-message`、`tag-list`、`stash-list`、`worktree-list` 等操作可以正常调度，`context` 能在工作区内发现 3 个仓库。对一个真实仓库走查 `status`、`log`、`head-message`、`branches`、`tag-list`、`stash-list`、`worktree-list`，均返回真实数据（`main` 跟踪 `origin/main`、1 条提交、1 个标记、1 份存储、2 个工作树），只读调用未修改该仓库任何文件。界面外观与参考截图的逐项比对未纳入本次验证。
