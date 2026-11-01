@@ -18,5 +18,8 @@
   },
   "include": [
     "src/client/**/*.ts"
+  ],
+  "exclude": [
+    "src/client/monacoEntry.ts"
   ]
 }

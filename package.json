@@ -1,6 +1,6 @@
 {
   "name": "dsh-scm",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "VS Code 风格的 DSH 原生源代码管理器",
   "type": "module",
   "private": false,
@@ -18,7 +18,8 @@
     "lib",
     "cordis.patch.yml",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md"
   ],
   "exports": {
     ".": {
@@ -52,16 +53,21 @@
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
+    "esbuild": "^0.28.2",
+    "monaco-editor": "^0.57.0",
     "typescript": "^5.6.0"
   },
   "scripts": {
     "build": "npm run build:host && npm run build:client",
     "build:host": "tsc -p tsconfig.json",
-    "build:client": "tsc -p tsconfig.client.build.json && node scripts/bundle-client.mjs",
+    "build:client": "tsc -p tsconfig.client.build.json && node scripts/bundle-client.mjs && node scripts/build-monaco.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.client.build.json --noEmit",
     "test": "npm run build:host && node --test test/*.test.mjs"
   },
   "dependencies": {
     "schemastery": "^3.18.0"
+  },
+  "overrides": {
+    "dompurify": "3.4.17"
   }
 }

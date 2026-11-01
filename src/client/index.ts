@@ -1,3 +1,4 @@
+import {ScmDiffTab,bindDiffOpener} from './diffEditor.js'
 /**
  * dsh-scm — browser half.
  *
@@ -65,7 +66,8 @@ export function apply(ctx: ClientContext): void {
   ctx.inject(['sidebarRightTabs'], injected => {
     const tabs = injected.get('sidebarRightTabs') as TabRegistry | undefined
     if (tabs === undefined) return undefined
-    return tabs.register({
+    const stopDiff=tabs.register({id:'dsh-scm:diff',kind:'scm-diff',title:()=> '差异对比'})
+    const stopScm=tabs.register({
       id: TYPE_ID,
       kind: KIND,
       title: () => '源代码管理',
@@ -78,7 +80,13 @@ export function apply(ctx: ClientContext): void {
         },
       ],
     })
+    return ()=>{stopScm();stopDiff()}
   })
+  ctx.inject(['sidebarRight'], injected=>{
+    const sidebar=injected.get('sidebarRight') as {openTab(kind:string,options?:{params:unknown}):void}|undefined
+    if(sidebar)return bindDiffOpener(request=>sidebar.openTab('scm-diff',{params:request}))
+  })
+  ctx.effect(()=>ctx.slots.inject('sidebar.right.pane.tab',()=>ctx.slots.register({name:'sidebar.right.pane.tab',key:'dsh-scm:diff'},ScmDiffTab)), 'dsh-scm: diff body')
 
   // Stage two: the body. The seat dispatches by the type id above and hands the
   // body its session id through this registration's inject factory.

@@ -24,7 +24,7 @@ const ENTRY = './index.js'
 /** Final bundle path. */
 const OUT_FILE = 'lib/client.js'
 
-const modules = readdirSync(BUILD_DIR).filter(name => name.endsWith('.js')).sort()
+const modules = readdirSync(BUILD_DIR).filter(name => name.endsWith('.js') && name !== 'monacoEntry.js').sort()
 const ids = new Map(modules.map((name, index) => [`./${name}`, index]))
 if (!ids.has(ENTRY)) throw new Error(`bundle-client: ${ENTRY} not found in ${BUILD_DIR}`)
 
