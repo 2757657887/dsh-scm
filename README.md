@@ -174,6 +174,9 @@ npm run build       # 编译宿主 + 打包客户端 + 复制 Monaco 资源
 
 验证：34 项测试通过；构建及类型检查通过，客户端包按 9 个模块重新打包。重启 DSH 后确认宿主侧已加载本版本：新增的 `head-message`、`tag-list`、`stash-list`、`worktree-list` 等操作可以正常调度，`context` 能在工作区内发现 3 个仓库。对一个真实仓库走查 `status`、`log`、`head-message`、`branches`、`tag-list`、`stash-list`、`worktree-list`，均返回真实数据（`main` 跟踪 `origin/main`、1 条提交、1 个标记、1 份存储、2 个工作树），只读调用未修改该仓库任何文件。界面外观与参考截图的逐项比对未纳入本次验证。
 
+<details>
+<summary>0.2.2 / 0.2.1 / 0.2.0 / 0.1.0</summary>
+
 ### 0.2.2 更新
 
 对照 VS Code Git 扩展的 git.viewChanges / git.cleanAll / git.stageAll / git.openFile 命令补齐：
@@ -207,6 +210,8 @@ npm run build       # 编译宿主 + 打包客户端 + 复制 Monaco 资源
 ### 0.1.0
 
 首个版本：VS Code 风格的右侧栏源代码管理面板、仓库与分支列表、暂存 / 提交 / 放弃、提交历史与差异查看。
+
+</details>
 
 ## 许可
 

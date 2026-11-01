@@ -174,6 +174,9 @@ After editing sources run `npm run build` and restart DSH. Host changes (`src/ho
 
 Verification: 34 tests pass; build and type check pass, and the client bundle was repacked into 9 modules. After restarting DSH the host half was confirmed live: the newly added `head-message`, `tag-list`, `stash-list` and `worktree-list` operations dispatch, and `context` discovers 3 repositories in the workspace. A read-only walkthrough of `status`, `log`, `head-message`, `branches`, `tag-list`, `stash-list` and `worktree-list` against a real repository returned real data (`main` tracking `origin/main`, 1 commit, 1 tag, 1 stash, 2 worktrees) without modifying any file. A per-item visual comparison against the reference screenshots was not part of this verification.
 
+<details>
+<summary>0.2.2 / 0.2.1 / 0.2.0 / 0.1.0</summary>
+
 ### 0.2.2
 
 Matches the VS Code Git extension's git.viewChanges / git.cleanAll / git.stageAll / git.openFile commands:
@@ -207,6 +210,8 @@ Verification: 23 tests pass; build and type check pass. In an isolated DSH the 8
 ### 0.1.0
 
 First release: VS Code-style source control panel in the right sidebar, repository and branch listing, stage/commit/discard, commit history and diff viewing.
+
+</details>
 
 ## License
 
