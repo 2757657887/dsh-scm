@@ -6,6 +6,22 @@ A **native source-control plugin for [DeepSeek Harness](https://github.com/deeps
 
 The plugin loads as a DSH client plugin (`web` platform, injected into the right-sidebar slot). The host half exposes a single route surface, `POST /dsh-scm/<operation>`, over Git. The Git backend is derived from the MIT-licensed [dsh-source-control](https://github.com/jackchen13755/dsh-source-control); the UI, diff views and graph are implemented here. Upstream copyright and license notices are preserved in [LICENSE](LICENSE) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
+## Screenshots
+
+> Rendered from the repository's preview tooling against the **real plugin panel** (`src/client/panel.ts`, `src/client/diffEditor.ts`, with Monaco served from local plugin assets) plus sample repository data. The UI matches 0.3.0.
+
+**Source control panel** — repositories and workspaces, Changes / Staged Changes groups, commit box with its dropdown, graph section
+
+![Source control panel](docs/source-control-panel.png)
+
+**Commit graph** — branch and tag decorations, branch filtering, load more
+
+![Commit graph](docs/commit-graph.png)
+
+**Diff view** — Monaco side-by-side diff, word-level highlighting, previous / next change navigation
+
+![Diff view](docs/diff-view.png)
+
 ## Features
 
 **Repositories and workspaces**

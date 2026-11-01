@@ -6,6 +6,22 @@ VS Code 风格的 **DSH 原生源代码管理插件**：右侧栏 Git 面板、M
 
 插件以 DSH 客户端插件形式加载（`web` 平台，注入右侧栏槽位），宿主侧以单一路由面 `POST /dsh-scm/<operation>` 暴露 Git 操作。Git 后端改造自 MIT 许可的 [dsh-source-control](https://github.com/jackchen13755/dsh-source-control)，界面、差异视图与图表为本项目实现；原作者的授权与版权声明保留在 [LICENSE](LICENSE) 与 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
 
+## 效果图
+
+> 截图由仓库内的预览工具渲染**真实插件面板**（`src/client/panel.ts`、`src/client/diffEditor.ts`，Monaco 资源同样是插件本地文件）并注入示例仓库数据得到，与 0.3.0 的界面一致。
+
+**源代码管理面板** — 仓库与工作区、更改 / 暂存的更改分组、提交框与提交下拉、图表区
+
+![源代码管理面板](docs/source-control-panel.png)
+
+**提交图表** — 分支与标签装饰、按分支过滤、加载更多
+
+![提交图表](docs/commit-graph.png)
+
+**差异视图** — Monaco 左右差异、词级高亮、上一个 / 下一个更改导航
+
+![差异视图](docs/diff-view.png)
+
 ## 功能
 
 **仓库与工作区**
