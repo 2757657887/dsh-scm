@@ -87,33 +87,23 @@ The plugin loads as a DSH client plugin (`web` platform, injected into the right
 - Git 2.20+ on `PATH`.
 - Push and pull use your existing Git credentials (HTTPS or SSH); the plugin starts no extra auth service.
 
-### Option 1 — from source (recommended)
+### Install
 
 ```powershell
 git clone https://github.com/2757657887/dsh-scm.git
 cd dsh-scm
 npm install --ignore-scripts
 npm run build
-dsh plugin --profile desktop add <absolute-path-to-repo> --offline
+dsh plugin --profile desktop add C:/Projects/dsh-scm   # your absolute repository path
 ```
 
 **Restart DSH** afterwards. The plugin registers a right-sidebar tab: right sidebar → new tab → Source Control.
 
+`add` takes an **absolute path** only (use forward slashes, e.g. `C:/Projects/dsh-scm`): it records the dependency as `link:` and appends `dsh-scm` to `dsh.profile.bundles`. Relative paths resolve against the profile directory — do not use them.
+
 `npm run build` compiles the host TypeScript, bundles the browser modules, and copies Monaco and codicon assets into `lib/assets`. A fresh clone has no loadable client code until it is built.
 
-### Option 2 — from a local tarball
-
-Pack the tarball inside the repository, then install that file:
-
-```powershell
-npm run build
-npm pack            # produces dsh-scm-0.3.0.tgz
-dsh plugin --profile desktop add ./dsh-scm-0.3.0.tgz
-```
-
-Useful when you want to install without keeping the source checkout, or to hand one identical build to several machines.
-
-> **Not published to npm yet.** The `dsh-scm` name on npm belongs to someone else (`dushaobindoudou`) and holds a single empty placeholder release, `0.0.1` — it is not this project. Do **not** install with `dsh plugin add dsh-scm`; that fetches a different package.
+> Not published to npm. The `dsh-scm` name on npm is someone else's empty placeholder (`0.0.1`), so do not install with `dsh plugin add dsh-scm`.
 
 ### Verify the install
 

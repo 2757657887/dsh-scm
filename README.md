@@ -87,33 +87,23 @@ VS Code 风格的 **DSH 原生源代码管理插件**：右侧栏 Git 面板、M
 - Git 2.20+ 在 `PATH` 中。
 - 推送 / 拉取使用 Git 已配置好的凭据（HTTPS 或 SSH），插件不启动额外的认证服务。
 
-### 方式一：从源码安装（推荐）
+### 安装步骤
 
 ```powershell
 git clone https://github.com/2757657887/dsh-scm.git
 cd dsh-scm
 npm install --ignore-scripts
 npm run build
-dsh plugin --profile desktop add <仓库绝对路径> --offline
+dsh plugin --profile desktop add C:/Projects/dsh-scm   # 换成你的仓库绝对路径
 ```
 
 安装后**重启 DSH**。插件注册为右侧栏的一个标签页：右侧栏 → 新标签页 → 源代码管理。
 
+`add` 只接受**绝对路径**（用正斜杠，如 `C:/Projects/dsh-scm`）：它会把依赖记为 `link:` 并自动把 `dsh-scm` 写进 `dsh.profile.bundles`。相对路径会按 profile 目录解析，不要用。
+
 `npm run build` 会编译宿主侧 TypeScript、打包浏览器端模块，并把 Monaco 与 codicon 资源复制到 `lib/assets`，因此克隆后不构建就没有可加载的客户端代码。
 
-### 方式二：从本地打包文件安装
-
-在仓库目录里打出 tarball，再让 DSH 装这个包：
-
-```powershell
-npm run build
-npm pack            # 生成 dsh-scm-0.3.0.tgz
-dsh plugin --profile desktop add ./dsh-scm-0.3.0.tgz
-```
-
-适合不想保留源码目录、或要在多台机器间分发同一份构建的场景。
-
-> **尚未发布到 npm。** npm 上的 `dsh-scm` 是他人（`dushaobindoudou`）预留的名字，只有一个空的占位版本 `0.0.1`，不是本项目。请**不要**用 `dsh plugin add dsh-scm` 安装，那样拿到的不是本插件。
+> 本项目未发布到 npm。npm 上的 `dsh-scm` 是他人预留的空版本（`0.0.1`），因此不要用 `dsh plugin add dsh-scm` 安装。
 
 ### 安装后确认
 
