@@ -1,3 +1,5 @@
+import {bindFileOpener} from './navigation.js'
+import {ScmMultiDiffTab,bindGroupDiffOpener} from './multiDiff.js'
 import {ScmDiffTab,bindDiffOpener} from './diffEditor.js'
 /**
  * dsh-scm — browser half.
@@ -66,6 +68,7 @@ export function apply(ctx: ClientContext): void {
   ctx.inject(['sidebarRightTabs'], injected => {
     const tabs = injected.get('sidebarRightTabs') as TabRegistry | undefined
     if (tabs === undefined) return undefined
+    const stopMulti=tabs.register({id:'dsh-scm:multi-diff',kind:'scm-multi-diff',title:()=> '所有更改'})
     const stopDiff=tabs.register({id:'dsh-scm:diff',kind:'scm-diff',title:()=> '差异对比'})
     const stopScm=tabs.register({
       id: TYPE_ID,
@@ -80,12 +83,13 @@ export function apply(ctx: ClientContext): void {
         },
       ],
     })
-    return ()=>{stopScm();stopDiff()}
+    return ()=>{stopScm();stopDiff();stopMulti()}
   })
   ctx.inject(['sidebarRight'], injected=>{
-    const sidebar=injected.get('sidebarRight') as {openTab(kind:string,options?:{params:unknown}):void}|undefined
-    if(sidebar)return bindDiffOpener(request=>sidebar.openTab('scm-diff',{params:request}))
+    const sidebar=injected.get('sidebarRight') as {openTab(kind:string,options?:{params:unknown}):void;openResource(address:string):void}|undefined
+    if(sidebar){const single=bindDiffOpener(request=>sidebar.openTab('scm-diff',{params:request}));const group=bindGroupDiffOpener(request=>sidebar.openTab('scm-multi-diff',{params:request}));const file=bindFileOpener(address=>sidebar.openResource(address));return()=>{single();group();file()}}
   })
+  ctx.effect(()=>ctx.slots.inject('sidebar.right.pane.tab',()=>ctx.slots.register({name:'sidebar.right.pane.tab',key:'dsh-scm:multi-diff'},ScmMultiDiffTab)), 'dsh-scm: multi diff body')
   ctx.effect(()=>ctx.slots.inject('sidebar.right.pane.tab',()=>ctx.slots.register({name:'sidebar.right.pane.tab',key:'dsh-scm:diff'},ScmDiffTab)), 'dsh-scm: diff body')
 
   // Stage two: the body. The seat dispatches by the type id above and hands the

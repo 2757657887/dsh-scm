@@ -23,7 +23,7 @@ export function languageFor(file:string):string {
  const ext=file.split('.').pop()?.toLowerCase()??''
  return ({py:'python',js:'javascript',jsx:'javascript',ts:'typescript',tsx:'typescript',cpp:'cpp',cc:'cpp',c:'cpp',h:'cpp',hpp:'cpp',sh:'shell',md:'markdown',css:'css',html:'html',xml:'xml',yml:'yaml',yaml:'yaml'} as Record<string,string>)[ext]??'plaintext'
 }
-export function VersionDiff(props:{sessionId:string;request:DiffRequest;onClose?:()=>void}):ReactNode {
+export function VersionDiff(props:{sessionId:string;request:DiffRequest;onClose?:()=>void;compact?:boolean;onSize?:(height:number)=>void}):ReactNode {
  const mount=useRef<HTMLElement|null>(null),editor=useRef<Editor|null>(null)
  const [versions,setVersions]=useState<Versions|null>(null),[error,setError]=useState(''),[ready,setReady]=useState(false)
  const r=props.request
@@ -31,7 +31,7 @@ export function VersionDiff(props:{sessionId:string;request:DiffRequest;onClose?
   let disposed=false;let instance:Editor|undefined;let models:Model[]=[];let themeObserver:MutationObserver|undefined
   setVersions(null);setError('');setReady(false)
   void Promise.all([loadMonaco(),call<Versions>('file-versions',props.sessionId,{repo:r.repo,file:r.file,staged:r.staged,base:r.hash,name:r.from})]).then(([monaco,value])=>{
-   if(disposed)return;setVersions(value)
+   if(disposed)return;setVersions(value);props.onSize?.(Math.min(550,Math.max(130,Math.max(value.original.split('\n').length,value.modified.split('\n').length)*20+34)))
    if(value.binary)return
    const applyTheme=()=>{if(mount.current){monaco.editor.defineTheme('dsh-scm-theme',editorTheme(mount.current));monaco.editor.setTheme('dsh-scm-theme')}}
    applyTheme()
@@ -46,7 +46,7 @@ export function VersionDiff(props:{sessionId:string;request:DiffRequest;onClose?
   return()=>{disposed=true;themeObserver?.disconnect();instance?.dispose();models.forEach(m=>m.dispose());editor.current=null}
  },[props.sessionId,r.repo,r.file,r.staged,r.hash,r.from])
  return h('div',{style:{display:'flex',flexDirection:'column',height:'100%',minHeight:0,background:'transparent',color:'var(--dsw-alias-label-primary,inherit)',font:'12px Segoe UI,sans-serif'}},
-  h('div',{style:{display:'flex',alignItems:'center',gap:8,padding:'6px 10px',borderBottom:'1px solid var(--dsw-alias-border-l2,rgba(127,127,127,.2))'}},props.onClose?h('button',{onClick:props.onClose,title:'返回源代码管理'},'←'):null,h('span',{style:{flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'},title:r.file},r.file),h('button',{style:{border:0,background:'transparent',color:'inherit',cursor:'pointer'},onClick:()=>editor.current?.goToDiff?.('previous'),disabled:!ready,title:'上一个更改'},'↑'),h('button',{style:{border:0,background:'transparent',color:'inherit',cursor:'pointer'},onClick:()=>editor.current?.goToDiff?.('next'),disabled:!ready,title:'下一个更改'},'↓')),
+  !props.compact?h('div',{style:{display:'flex',alignItems:'center',gap:8,padding:'6px 10px',borderBottom:'1px solid var(--dsw-alias-border-l2,rgba(127,127,127,.2))'}},props.onClose?h('button',{onClick:props.onClose,title:'返回源代码管理'},'←'):null,h('span',{style:{flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'},title:r.file},r.file),h('button',{style:{border:0,background:'transparent',color:'inherit',cursor:'pointer'},onClick:()=>editor.current?.goToDiff?.('previous'),disabled:!ready,title:'上一个更改'},'↑'),h('button',{style:{border:0,background:'transparent',color:'inherit',cursor:'pointer'},onClick:()=>editor.current?.goToDiff?.('next'),disabled:!ready,title:'下一个更改'},'↓')):null,
   h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',fontSize:11,padding:'4px 12px',background:'var(--dsw-alias-bg-layer-1,transparent)',borderBottom:'1px solid var(--dsw-alias-border-l2,rgba(127,127,127,.2))'}},h('span',null,'原始版本 · '+(versions?.leftLabel??'')),h('span',null,'修改版本 · '+(versions?.rightLabel??''))),
   error?h('div',{role:'alert',style:{padding:15,color:'#f48771'}},error):null,
   versions?.binary?h('div',{style:{padding:20}},'二进制文件无法显示文本差异。'):null,

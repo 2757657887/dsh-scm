@@ -1,3 +1,6 @@
+import {openWorkspaceFile} from './navigation.js'
+import {MultiDiff,openGroupDiffTab,type GroupDiffRequest} from './multiDiff.js'
+import {scmGlyphs} from './scmIcons.js'
 import {VersionDiff,openDiffTab,type DiffRequest} from './diffEditor.js'
 import { createElement as h, useState, useEffect, useRef, type ReactNode } from 'react'
 import { call, type ContextValue, type RepoStatus, type StatusEntry, type CommitInfo, type BranchInfo, type CallFields } from './api.js'
@@ -15,7 +18,7 @@ const paths: Record<string, string[]> = {
   down: ['M12 3v14m-5-5 5 5 5-5M4 21h16'], up: ['M12 17V3m-5 5 5-5 5 5M4 21h16'],
   close: ['m6 6 12 12M6 18 18 6'], file: ['M6 3h8l4 4v14H6z','M14 3v5h4'], folder: ['M3 6h7l2 2h9v12H3z'], graph: ['M6 5v14M6 12h12V5','M4 3h4v4H4zM16 3h4v4h-4zM4 17h4v4H4z'], search: ['M10 3a7 7 0 1 0 0 14 7 7 0 0 0 0-14','m15 15 6 6']
 }
-function icon(name: string) { return h('svg', { width: 16, height: 16, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.6, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true }, ...(paths[name] ?? paths.file).map((d, i) => h('path', { d, key: i }))) }
+function icon(name: string) { if(scmGlyphs[name])return h('svg',{width:16,height:16,viewBox:'0 0 24 24',fill:'currentColor','aria-hidden':true},h('path',{d:scmGlyphs[name]})); return h('svg', { width: 16, height: 16, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.6, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true }, ...(paths[name] ?? paths.file).map((d, i) => h('path', { d, key: i }))) }
 const css = `
 .vscm{--fg:var(--dsw-alias-label-primary,inherit);--dim:var(--dsw-alias-label-tertiary,#96969f);--bg:transparent;--hover:var(--dsw-alias-interactive-bg-hover,rgba(127,127,127,.1));--sel:var(--dsw-alias-bg-layer-2,rgba(127,127,127,.18));--border:var(--dsw-alias-border-l2,rgba(127,127,127,.2));--blue:var(--dsw-alias-state-business-primary,#3b66c9);display:flex;flex-direction:column;height:100%;min-height:0;background:var(--bg);color:var(--fg);font:13px/1.4 -apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',sans-serif;position:relative;isolation:isolate;color-scheme:inherit}
 .vscm *{box-sizing:border-box}.vscm button,.vscm input,.vscm textarea{font:inherit;color:inherit}.vscm button{cursor:pointer}.vscm button:disabled{opacity:.4;cursor:default}.vscm button:focus-visible,.vscm [tabindex]:focus-visible{outline:1px solid #75beff;outline-offset:-1px}.vscm .ib{display:inline-flex;align-items:center;justify-content:center;width:24px;height:22px;padding:2px;border:0;background:transparent;border-radius:3px;color:var(--fg);flex-shrink:0}.vscm .ib:hover{background:rgba(255,255,255,.1)}
@@ -32,6 +35,7 @@ export function ScmPanel({ sessionId }: ScmPanelProps): ReactNode {
   const [commits, setCommits] = useState<CommitInfo[]>([]), [busy, setBusy] = useState(false), [error, setError] = useState('')
   const [message, setMessage] = useState(''), [collapsed, setCollapsed] = useState<Record<string, boolean>>({}), [selected, setSelected] = useState<Selection[]>([])
   const [graphHeight, setGraphHeight] = useState(175), [limit, setLimit] = useState(60)
+  const [groupDiff,setGroupDiff]=useState<GroupDiffRequest|null>(null)
   const [versionDiff,setVersionDiff]=useState<DiffRequest|null>(null)
   const [commitDetail,setCommitDetail]=useState<CommitDetail|null>(null)
   const [expandedCommit,setExpandedCommit]=useState<string|null>(null)
@@ -97,7 +101,15 @@ export function ScmPanel({ sessionId }: ScmPanelProps): ReactNode {
   }
   const changes = [...(status?.unstaged ?? []), ...(status?.untracked ?? [])]
   const stage = (files: readonly StatusEntry[], staged: boolean) => void run(staged ? 'unstage' : 'stage', { files: [...new Set(files.flatMap(f => f.from ? [f.from, f.path] : [f.path]))] }, () => { setSelected([]); setDiff(null) })
-  function discard(files: readonly string[]) { setMenu(null); setConfirm({text: `确定要放弃以下文件的未暂存更改吗？未跟踪文件将被删除。此操作无法通过 Git 撤销。\n\n${files.join('\n')}`, run: () => { setConfirm(null); void run('discard', {files: [...files], confirm:true}, () => setDiff(null)) }}) }
+  function discard(files:readonly string[]) {
+    const paths=[...new Set(files.flatMap(path=>{const entry=changes.find(f=>f.path===path);return entry?.from?[entry.from,path]:[path]}))]
+    const repo=repoRef.current,token=epoch.current
+    setMenu(null);setConfirm({text:`确定要放弃以下 ${paths.length} 个文件的未暂存更改吗？已暂存内容会保留；未跟踪文件将被删除。此操作无法通过 Git 撤销。\n\n${paths.join('\n')}`,run:()=>{
+      setConfirm(null)
+      if(token!==epoch.current||repo!==repoRef.current){setError('工作区已切换，请重新选择需要放弃的文件。');return}
+      void run('discard',{files:paths,confirm:true},()=>{setSelected([]);setDiff(null)})
+    }})
+  }
   function commit() {
     if (!message.trim() || busy) { if (!message.trim()) root.current?.querySelector<HTMLTextAreaElement>('textarea')?.focus(); return }
     if (!status?.staged.length) {
@@ -116,17 +128,21 @@ export function ScmPanel({ sessionId }: ScmPanelProps): ReactNode {
     const active = selected.some(s=>s.path===file.path&&s.staged===staged)
     const items = (): MenuItem[] => {
       const group = active ? selected.filter(s=>s.staged===staged).map(s=>s.path) : [file.path]
-      return [{label:'打开更改',run:()=>{setMenu(null);void openFile(file.path,staged)}}, {label:staged?'取消暂存更改':'暂存更改',run:()=>stage(group.map(path=>({path,code:''})),staged)}, ...(!staged?[{label:'放弃更改…',run:()=>discard(group)}]:[])]
+      return [{label:'打开更改',run:()=>{setMenu(null);void openFile(file.path,staged)}},{label:'打开文件',disabled:code==='D',run:()=>{setMenu(null);try{if(!openWorkspaceFile(repoRef.current,file.path,sessionId))setError('当前 DSH 未提供文件打开服务。')}catch(error){showError(error)}}}, {label:staged?'取消暂存更改':'暂存更改',run:()=>stage(group.map(path=>({path,code:''})),staged)}, ...(!staged?[{label:'放弃更改…',run:()=>discard(group)}]:[])]
     }
     return h('div', {key:`${staged}:${file.path}`,role:'option','aria-selected':active,tabIndex:0,className:`vscm-file ${active?'selected':''}`,'data-code':code,title:file.from?`${file.from} → ${file.path}`:file.path,
       onClick:(e:MouseEvent)=>{if(e.ctrlKey||e.metaKey)setSelected(s=>active?s.filter(x=>x.path!==file.path||x.staged!==staged):[...s,{path:file.path,staged}]);else void openFile(file.path,staged)},
       onContextMenu:(e:MouseEvent)=>openMenu(e,items()),onKeyDown:(e:KeyboardEvent)=>{if(e.key==='Enter')void openFile(file.path,staged);if(e.key==='Delete'&&!staged){e.preventDefault();discard([file.path])}if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();const el=e.currentTarget as HTMLElement;((e.key==='ArrowDown'?el.nextElementSibling:el.previousElementSibling) as HTMLElement)?.focus()}}},
       h('span',{className:'file-icon'},icon('file')),h('span',{className:'vscm-name'},name),h('span',{className:'vscm-dir'},dir),
-      h('span',{className:'actions'},...(!staged?[button('undo','放弃更改',e=>{e.stopPropagation();discard([file.path])})]:[]),button(staged?'minus':'plus',staged?'取消暂存更改':'暂存更改',e=>{e.stopPropagation();stage([file],staged)})),h('span',{className:'vscm-status'},code))
+      h('span',{className:'actions'},button('openFile','打开文件',e=>{e.stopPropagation();try{if(!openWorkspaceFile(repoRef.current,file.path,sessionId))setError('当前 DSH 未提供文件打开服务。')}catch(error){showError(error)}},busy||code==='D'),...(!staged?[button('discard','放弃更改',e=>{e.stopPropagation();discard([file.path])})]:[]),button(staged?'minus':'plus',staged?'取消暂存更改':'暂存更改',e=>{e.stopPropagation();stage([file],staged)})),h('span',{className:'vscm-status'},code))
+  }
+  function viewAll(files:readonly StatusEntry[],staged:boolean,title:string){
+    const request:GroupDiffRequest={title,files:files.map(f=>({repo:repoRef.current,file:f.path,from:f.from,staged}))}
+    if(!openGroupDiffTab(request))setGroupDiff(request)
   }
   function group(title: string, key: string, files: readonly StatusEntry[], staged: boolean, conflict=false) {
     if (!files.length) return null
-    return h('div',{key},h('div',{className:'vscm-group'},h('span',{className:`arrow ${collapsed[key]?'closed':''}`,onClick:()=>toggle(key)},icon('chevron')),h('span',{className:'label',onClick:()=>toggle(key)},title),button(staged?'minus':'plus',staged?'取消暂存所有更改':'暂存所有更改',()=>stage(files,staged)),h('span',{className:'vscm-count'},files.length)),...(!collapsed[key]?files.map(f=>row(f,staged,conflict)):[]))
+    return h('div',{key},h('div',{className:'vscm-group'},h('span',{className:`arrow ${collapsed[key]?'closed':''}`,onClick:()=>toggle(key)},icon('chevron')),h('span',{className:'label',onClick:()=>toggle(key)},title),...(!conflict?[button('diffMultiple',staged?'打开暂存的更改':'打开更改',()=>viewAll(files,staged,title)),...(!staged?[button('discard','放弃所有更改',()=>discard([...new Set(files.map(f=>f.path))]))]:[])]:[]),button(staged?'minus':'plus',staged?'取消暂存所有更改':'暂存所有更改',()=>stage(files,staged)),h('span',{className:'vscm-count'},files.length)),...(!collapsed[key]?files.map(f=>row(f,staged,conflict)):[]))
   }
   const graph = graphRows(commits)
   function renderCommit(commit:CommitInfo,i:number):ReactNode {
@@ -165,6 +181,7 @@ export function ScmPanel({ sessionId }: ScmPanelProps): ReactNode {
     h('div',{className:'vscm-resizer',role:'separator','aria-label':'调整图表高度',onPointerDown:(e:PointerEvent)=>{e.preventDefault();const start=e.clientY,initial=graphHeight;const move=(ev:PointerEvent)=>setGraphHeight(Math.max(80,Math.min((root.current?.clientHeight??600)-160,initial+start-ev.clientY)));const end=()=>{window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',end)};window.addEventListener('pointermove',move);window.addEventListener('pointerup',end)}}),
     h('div',{className:'vscm-history',style:{height:collapsed.graph?26:graphHeight}},h('div',{className:'vscm-section'},h('span',{className:`arrow ${collapsed.graph?'closed':''}`,onClick:()=>toggle('graph')},icon('chevron')),h('span',{onClick:()=>toggle('graph')},'图表'),h('span',{title:status?.upstream??'尚未设置上游',style:{fontSize:11,color:'#a9bbdf'}},`${status?.behind??0}↓ ${status?.ahead??0}↑`),button('down','拉取',()=>void run('pull')),button('up',status?.upstream?'推送':'发布分支',()=>remoteItems()[1]!.run()),button('refresh','刷新图表',()=>void refresh(true)),button('more','图表操作',e=>openMenu(e,[{label:'加载更多提交',run:()=>{setMenu(null);setLimit(n=>Math.min(200,n+60));void api<{commits:CommitInfo[]}>('log',{limit:Math.min(200,limit+60)}).then(v=>setCommits(v.commits)).catch(showError)}},...remoteItems()]))),
       !collapsed.graph?h('div',{className:'vscm-graphrows'},...commits.map(renderCommit),commits.length===0?h('div',{className:'vscm-note'},'暂无提交。'):null):null),
+    groupDiff?h('div',{className:'vscm-overlay'},h(MultiDiff,{sessionId,request:groupDiff,onClose:()=>setGroupDiff(null)})):null,
     versionDiff?h('div',{className:'vscm-overlay'},h(VersionDiff,{sessionId,request:versionDiff,onClose:()=>setVersionDiff(null)})):null,
     diff?h('div',{className:'vscm-overlay'},h('div',{className:'vscm-difftop'},button('close','返回源代码管理',closeDiff),h('span',{className:'name'},diff.title),diff.selection?button(diff.selection.staged?'minus':'plus',diff.selection.staged?'取消暂存更改':'暂存更改',()=>stage([{path:diff.selection!.path,code:''}],diff.selection!.staged)):null),h('div',{className:'vscm-diff'},...diff.text.slice(0,512*1024).split('\n').slice(0,6000).map((line,i)=>h('span',{key:i,className:`vscm-line ${line.startsWith('@@')?'hunk':line.startsWith('+')?'add':line.startsWith('-')?'del':''}`},line||' ')))):null,
     menu?h('div',{className:'vscm-menu',role:'menu',style:{left:menu.x,top:menu.y},onClick:(e:MouseEvent)=>e.stopPropagation()},...menu.items.map((item,i)=>h('button',{key:i,role:'menuitem',disabled:item.disabled||busy,onClick:item.run},item.label))):null,
