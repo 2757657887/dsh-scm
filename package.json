@@ -1,6 +1,6 @@
 {
   "name": "dsh-scm",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "VS Code 风格的 DSH 原生源代码管理器",
   "type": "module",
   "private": false,
