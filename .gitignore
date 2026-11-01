@@ -1,7 +1,39 @@
+# 依赖
 node_modules/
-*.log
-.DS_Store
 
+# 构建与类型检查缓存
+*.tsbuildinfo
+.cache/
+coverage/
+
+# 本地打包产物（发布时用 npm pack 手动生成，不入库）
+*.tgz
+
+# 界面预览产物（脚本生成；preview/*.mjs 与 preview/entry.ts 入库）
 preview/app.js
 preview/*.png
-*.tgz
+
+# 日志
+*.log
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# 本地环境变量
+.env
+.env.*
+!.env.example
+
+# 编辑器与系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# DSH / omd 本地运行状态
+.dsh/
+.omd/
+
+# 临时文件
+*.tmp
+*.bak
