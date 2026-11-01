@@ -101,11 +101,19 @@ dsh plugin --profile desktop add <仓库绝对路径> --offline
 
 `npm run build` 会编译宿主侧 TypeScript、打包浏览器端模块，并把 Monaco 与 codicon 资源复制到 `lib/assets`，因此克隆后不构建就没有可加载的客户端代码。
 
-### 方式二：从 npm 安装（已发布版本）
+### 方式二：从本地打包文件安装
+
+在仓库目录里打出 tarball，再让 DSH 装这个包：
 
 ```powershell
-dsh plugin add dsh-scm
+npm run build
+npm pack            # 生成 dsh-scm-0.3.0.tgz
+dsh plugin --profile desktop add ./dsh-scm-0.3.0.tgz
 ```
+
+适合不想保留源码目录、或要在多台机器间分发同一份构建的场景。
+
+> **尚未发布到 npm。** npm 上的 `dsh-scm` 是他人（`dushaobindoudou`）预留的名字，只有一个空的占位版本 `0.0.1`，不是本项目。请**不要**用 `dsh plugin add dsh-scm` 安装，那样拿到的不是本插件。
 
 ### 安装后确认
 

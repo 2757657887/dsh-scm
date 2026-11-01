@@ -101,11 +101,19 @@ dsh plugin --profile desktop add <absolute-path-to-repo> --offline
 
 `npm run build` compiles the host TypeScript, bundles the browser modules, and copies Monaco and codicon assets into `lib/assets`. A fresh clone has no loadable client code until it is built.
 
-### Option 2 — from npm (published releases)
+### Option 2 — from a local tarball
+
+Pack the tarball inside the repository, then install that file:
 
 ```powershell
-dsh plugin add dsh-scm
+npm run build
+npm pack            # produces dsh-scm-0.3.0.tgz
+dsh plugin --profile desktop add ./dsh-scm-0.3.0.tgz
 ```
+
+Useful when you want to install without keeping the source checkout, or to hand one identical build to several machines.
+
+> **Not published to npm yet.** The `dsh-scm` name on npm belongs to someone else (`dushaobindoudou`) and holds a single empty placeholder release, `0.0.1` — it is not this project. Do **not** install with `dsh plugin add dsh-scm`; that fetches a different package.
 
 ### Verify the install
 
